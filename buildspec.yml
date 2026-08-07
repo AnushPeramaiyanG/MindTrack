@@ -1,0 +1,33 @@
+version: 0.2
+
+phases:
+
+  install:
+    runtime-versions:
+      docker: 20
+
+    commands:
+      - echo "Installing kubectl"
+      - curl -LO https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl
+      - chmod +x kubectl
+      - mv kubectl /usr/local/bin/
+      - kubectl version --client
+
+  pre_build:
+    commands:
+      - echo "Updating kubeconfig"
+      - aws eks update-kubeconfig --region ap-south-1 --name brain-task-cluster
+      - kubectl get nodes
+
+  build:
+    commands:
+      - echo "Deploying Application"
+      - kubectl apply -f deployment.yaml
+      - kubectl apply -f service.yaml
+
+  post_build:
+    commands:
+      - kubectl get deployment
+      - kubectl get pods
+      - kubectl get svc
+      - echo "Deployment Completed Successfully"
