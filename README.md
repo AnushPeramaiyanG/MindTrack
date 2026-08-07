@@ -1,9 +1,9 @@
-Project Title
-Brain Tasks Application Deployment using AWS DevOps
+Project Title:
+  Brain Tasks Application Deployment using AWS DevOps
 
 
-Project Overview
-This project demonstrates a complete DevOps pipeline for deploying a React application on Amazon EKS using Docker, Amazon ECR, AWS CodeBuild, AWS CodePipeline, and Kubernetes.
+Project Overview:
+  This project demonstrates a complete DevOps pipeline for deploying a React application on Amazon EKS using Docker, Amazon ECR, AWS CodeBuild,     AWS CodePipeline, and Kubernetes.
 
 
 Technologies Used as below:
