@@ -1,93 +1,61 @@
-DevOps Practice Project – Dist Directory
+Project Title
+Brain Tasks Application Deployment using AWS DevOps
 
-This repository contains the production-ready build files (dist folder) for DevOps practice and deployment exercises.
 
-It is intentionally structured to help learners focus on CI/CD pipelines, hosting, containerization, and infrastructure setup rather than application development.
+Project Overview
+This project demonstrates a complete DevOps pipeline for deploying a React application on Amazon EKS using Docker, Amazon ECR, AWS CodeBuild, AWS CodePipeline, and Kubernetes.
 
-📁 What This Repository Contains
 
-dist/ – Compiled and production-ready static files
+Technologies Used as below:
+AWS EC2
+Ubuntu
+Git
+GitHub
+Docker
+Amazon ECR
+Amazon EKS
+Kubernetes
+AWS CodeBuild
+AWS CodePipeline
+Amazon CloudWatch
+AWS CLI
+kubectl
+eksctl
 
-HTML
 
-CSS
+Project Architecture:
 
-JavaScript
+GitHub
 
-Assets (images, fonts, etc.)
+↓
 
-These files are ready to deploy to:
+CodePipeline
 
-Web servers (Nginx / Apache)
+↓
 
-Cloud platforms (AWS S3, Azure Blob, GCP Storage)
+CodeBuild
 
-Containerized environments (Docker + Nginx)
+↓
 
-Kubernetes clusters
+Amazon ECR
 
-CI/CD pipeline demonstrations
+↓
 
-🎯 Purpose of This Repository
+Amazon EKS
 
-This repository is designed for:
+↓
 
-DevOps beginners
+AWS LoadBalancer
 
-CI/CD practice
+↓
 
-Deployment pipeline testing
+Application
 
-Docker & Kubernetes deployment exercises
 
-Web server configuration practice
+LoadBalancer ARN:
+http://abc2c621864454e9da024e26eae97960-2081215207.ap-south-1.elb.amazonaws.com/
 
-Reverse proxy and load balancer setup
 
-The goal is to simulate real-world deployment scenarios using already built application files.
-
-❓ Why is there NO package.json?
-
-You may notice that this repository does not include:
-
-package.json
-
-node_modules
-
-Source code (src/)
-
-Build tools configuration
-
-✅ Reason:
-
-This repository only contains the final production build output (dist), not the development source code.
-
-In a typical project:
-
-Developers write source code.
-
-The project is built using tools like:
-
-Node.js
-
-Webpack
-
-Vite
-
-React (or other frameworks)
-
-A dist/ folder is generated.
-
-Only the production build is deployed to servers.
-
-This repository represents step 4 only.
-
-Since this is already the compiled output:
-
-No dependencies are required
-
-No build process is required
-
-No package.json is needed
+The complete Project Steps and Relevant Screenshots are documented and attached to this repository.
 
 Add New line for Code Build test
