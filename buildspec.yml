@@ -21,10 +21,14 @@ phases:
       - echo "Deploying Application"
       - kubectl apply -f deployment.yaml
       - kubectl apply -f service.yaml
+      - kubectl apply -f ingress.yaml 
 
   post_build:
     commands:
-      - kubectl get deployment
-      - kubectl get pods
+      echo Waiting for deployment...
+      - kubectl rollout status deployment/brain-task-app
+      - echo Listing resources...
+      - kubectl get deployments
       - kubectl get svc
+      - kubectl get ingress
       - echo "Deployment Completed Successfully"
