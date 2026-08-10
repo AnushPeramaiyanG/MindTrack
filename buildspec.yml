@@ -1,51 +1,59 @@
 version: 0.2
 
+env:
+  variables:
+    AWS_REGION: "ap-south-1"
+    ECR_REPOSITORY: "brain-task-app"
+    IMAGE_TAG: "latest"
+    EKS_CLUSTER_NAME: "brain-task-cluster"
+
 phases:
-pre_build:
-commands:
-- echo "Logging in to Amazon ECR..."
-- AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-- ECR_URI=$AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/brain-task-app
-- aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com
+  install:
+    commands:
+      - echo "Installing kubectl..."
+      - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+      - chmod +x kubectl
+      - mv kubectl /usr/local/bin/
+      - kubectl version --client
 
-build:
-commands:
-- echo "Building Docker image..."
-- docker build -t brain-task-app:latest .
-- docker tag brain-task-app:latest $ECR_URI:latest
-- echo "Pushing Docker image to Amazon ECR..."
-- docker push $ECR_URI:latest
+  pre_build:
+    commands:
+      - echo "Getting AWS Account ID..."
+      - AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+      - ECR_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}
+      - echo "ECR URI = ${ECR_URI}"
 
-post_build:
-commands:
-- echo "Updating EKS kubeconfig..."
-- aws eks update-kubeconfig --region ap-south-1 --name brain-task-cluster
+      - echo "Logging in to Amazon ECR..."
+      - aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
 
-  - echo "Checking EKS cluster..."
-  - kubectl get nodes
+  build:
+    commands:
+      - echo "Building Docker image..."
+      - docker build -t ${ECR_REPOSITORY}:${IMAGE_TAG} .
 
-  - echo "Applying Kubernetes Deployment..."
-  - kubectl apply -f deployment.yaml
+      - echo "Tagging Docker image..."
+      - docker tag ${ECR_REPOSITORY}:${IMAGE_TAG} ${ECR_URI}:${IMAGE_TAG}
 
-  - echo "Applying Kubernetes Service..."
-  - kubectl apply -f service.yaml
+      - echo "Pushing Docker image to Amazon ECR..."
+      - docker push ${ECR_URI}:${IMAGE_TAG}
 
-  - echo "Applying Kubernetes Ingress..."
-  - kubectl apply -f ingress.yaml
+  post_build:
+    commands:
+      - echo "Updating Kubernetes deployment image..."
 
-  - echo "Updating Deployment image..."
-  - kubectl set image deployment/brain-task-app brain-task-app=$ECR_URI:latest
+      - echo "AWS Identity:"
+      - aws sts get-caller-identity
 
-  - echo "Waiting for deployment rollout..."
-  - kubectl rollout status deployment/brain-task-app --timeout=180s
+      - echo "Updating kubeconfig..."
+      - aws eks update-kubeconfig --region ${AWS_REGION} --name ${EKS_CLUSTER_NAME}
 
-  - echo "Checking Pods..."
-  - kubectl get pods
+      - echo "Checking EKS access..."
+      - kubectl get nodes
 
-  - echo "Checking Services..."
-  - kubectl get svc
+      - echo "Updating deployment image..."
+      - kubectl set image deployment/brain-task-app brain-task-app=${ECR_URI}:${IMAGE_TAG}
 
-  - echo "Checking Ingress..."
-  - kubectl get ingress
+      - echo "Waiting for rollout..."
+      - kubectl rollout status deployment/brain-task-app
 
-  - echo "Build and deployment completed successfully."
+      - echo "Deployment completed successfully!"
