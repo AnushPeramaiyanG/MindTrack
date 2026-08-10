@@ -8,7 +8,6 @@ env:
     IMAGE_TAG: "latest"
 
 phases:
-
   install:
     commands:
       - echo "Installing kubectl..."
@@ -46,11 +45,11 @@ phases:
 
       - kubectl get nodes
 
+      - kubectl set image deployment/brain-task-app brain-task-app=${ECR_URI}:${IMAGE_TAG}
+
       - kubectl apply -f deployment.yaml
 
       - kubectl apply -f service.yaml
-
-      - kubectl apply -f ingress.yaml
 
       - echo "Waiting for deployment rollout..."
       - kubectl rollout status deployment/brain-task-app --timeout=180s
@@ -60,8 +59,5 @@ phases:
 
       - echo "Checking Services..."
       - kubectl get svc
-
-      - echo "Checking Ingress..."
-      - kubectl get ingress
 
       - echo "Deployment completed successfully."
