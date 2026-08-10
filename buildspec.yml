@@ -21,7 +21,6 @@ commands:
 - echo "Updating EKS kubeconfig..."
 - aws eks update-kubeconfig --region ap-south-1 --name brain-task-cluster
 
-```
   - echo "Checking EKS cluster..."
   - kubectl get nodes
 
@@ -50,5 +49,3 @@ commands:
   - kubectl get ingress
 
   - echo "Build and deployment completed successfully."
-```
-
