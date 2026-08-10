@@ -4,10 +4,11 @@ env:
   variables:
     AWS_REGION: "ap-south-1"
     ECR_REPOSITORY: "brain-task-app"
-    IMAGE_TAG: "latest"
     EKS_CLUSTER_NAME: "brain-task-cluster"
+    IMAGE_TAG: "latest"
 
 phases:
+
   install:
     commands:
       - echo "Installing kubectl..."
@@ -41,19 +42,28 @@ phases:
     commands:
       - echo "Updating Kubernetes deployment image..."
 
-      - echo "AWS Identity:"
-      - aws sts get-caller-identity
-
-      - echo "Updating kubeconfig..."
       - aws eks update-kubeconfig --region ${AWS_REGION} --name ${EKS_CLUSTER_NAME}
 
-      - echo "Checking EKS access..."
       - kubectl get nodes
 
-      - echo "Updating deployment image..."
       - kubectl set image deployment/brain-task-app brain-task-app=${ECR_URI}:${IMAGE_TAG}
 
-      - echo "Waiting for rollout..."
-      - kubectl rollout status deployment/brain-task-app
+      - kubectl apply -f deployment.yaml
 
-      - echo "Deployment completed successfully!"
+      - kubectl apply -f service.yaml
+
+      - kubectl apply -f ingress.yaml
+
+      - echo "Waiting for deployment rollout..."
+      - kubectl rollout status deployment/brain-task-app --timeout=180s
+
+      - echo "Checking Pods..."
+      - kubectl get pods
+
+      - echo "Checking Services..."
+      - kubectl get svc
+
+      - echo "Checking Ingress..."
+      - kubectl get ingress
+
+      - echo "Deployment completed successfully."
