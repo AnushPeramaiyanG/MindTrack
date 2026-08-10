@@ -1,69 +1,77 @@
 version: 0.2
 
 env:
-  variables:
-    AWS_REGION: "ap-south-1"
-    ECR_REPOSITORY: "brain-task-app"
-    EKS_CLUSTER_NAME: "brain-task-cluster"
-    IMAGE_TAG: "latest"
+variables:
+AWS_REGION: "ap-south-1"
+ECR_REPOSITORY: "brain-task-app"
+EKS_CLUSTER_NAME: "brain-task-cluster"
+IMAGE_TAG: "latest"
 
 phases:
 
-  install:
-    commands:
-      - echo "Installing kubectl..."
-      - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-      - chmod +x kubectl
-      - mv kubectl /usr/local/bin/
-      - kubectl version --client
+install:
+commands:
+- echo "Installing kubectl..."
+- curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+- chmod +x kubectl
+- mv kubectl /usr/local/bin/
+- kubectl version --client
 
-  pre_build:
-    commands:
-      - echo "Getting AWS Account ID..."
-      - AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-      - ECR_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}
-      - echo "ECR URI = ${ECR_URI}"
+pre_build:
+commands:
+- echo "Getting AWS Account ID..."
+- AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+- ECR_URI=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}
+- echo "ECR URI = ${ECR_URI}"
 
-      - echo "Logging in to Amazon ECR..."
-      - aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+```
+  - echo "Logging in to Amazon ECR..."
+  - aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+```
 
-  build:
-    commands:
-      - echo "Building Docker image..."
-      - docker build -t ${ECR_REPOSITORY}:${IMAGE_TAG} .
+build:
+commands:
+- echo "Building Docker image..."
+- docker build -t ${ECR_REPOSITORY}:${IMAGE_TAG} .
 
-      - echo "Tagging Docker image..."
-      - docker tag ${ECR_REPOSITORY}:${IMAGE_TAG} ${ECR_URI}:${IMAGE_TAG}
+```
+  - echo "Tagging Docker image..."
+  - docker tag ${ECR_REPOSITORY}:${IMAGE_TAG} ${ECR_URI}:${IMAGE_TAG}
 
-      - echo "Pushing Docker image to Amazon ECR..."
-      - docker push ${ECR_URI}:${IMAGE_TAG}
+  - echo "Pushing Docker image to Amazon ECR..."
+  - docker push ${ECR_URI}:${IMAGE_TAG}
+```
 
-  post_build:
-    commands:
-      - echo "Updating Kubernetes deployment image..."
+post_build:
+commands:
+- echo "Updating kubeconfig..."
+- aws eks update-kubeconfig --region ${AWS_REGION} --name ${EKS_CLUSTER_NAME}
 
-      - aws eks update-kubeconfig --region ${AWS_REGION} --name ${EKS_CLUSTER_NAME}
+```
+  - echo "Checking EKS nodes..."
+  - kubectl get nodes
 
-      - kubectl get nodes
+  - echo "Deploying Kubernetes Deployment..."
+  - kubectl apply -f deployment.yaml
 
-      - kubectl set image deployment/brain-task-app brain-task-app=${ECR_URI}:${IMAGE_TAG}
+  - echo "Updating Deployment image..."
+  - kubectl set image deployment/brain-task-app brain-task-app=${ECR_URI}:${IMAGE_TAG}
 
-      - kubectl apply -f deployment.yaml
+  - echo "Deploying Kubernetes Service..."
+  - kubectl apply -f service.yaml
 
-      - kubectl apply -f service.yaml
+  - echo "Deploying Kubernetes Ingress..."
+  - kubectl apply -f ingress.yaml
 
-      - kubectl apply -f ingress.yaml
+  - echo "Waiting for deployment rollout..."
+  - kubectl rollout status deployment/brain-task-app --timeout=180s
 
-      - echo "Waiting for deployment rollout..."
-      - kubectl rollout status deployment/brain-task-app --timeout=180s
+  - echo "Checking Pods..."
+  - kubectl get pods
 
-      - echo "Checking Pods..."
-      - kubectl get pods
+  - echo "Checking Services..."
+  - kubectl get svc
 
-      - echo "Checking Services..."
-      - kubectl get svc
-
-      - echo "Checking Ingress..."
-      - kubectl get ingress
-
-      - echo "Deployment completed successfully."
+  - echo "Checking Ingress..."
+  - kubectl get ingress
+```
