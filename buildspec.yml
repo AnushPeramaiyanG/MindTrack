@@ -46,8 +46,6 @@ phases:
 
       - kubectl get nodes
 
-      - kubectl set image deployment/brain-task-app brain-task-app=${ECR_URI}:${IMAGE_TAG}
-
       - kubectl apply -f deployment.yaml
 
       - kubectl apply -f service.yaml
