@@ -45,11 +45,11 @@ phases:
 
       - kubectl get nodes
 
-      - kubectl set image deployment/brain-task-app brain-task-app=${ECR_URI}:${IMAGE_TAG}
-
       - kubectl apply -f deployment.yaml
 
       - kubectl apply -f service.yaml
+
+      - kubectl set image deployment/brain-task-app brain-task-app=${ECR_URI}:${IMAGE_TAG} 
 
       - echo "Waiting for deployment rollout..."
       - kubectl rollout status deployment/brain-task-app --timeout=180s
